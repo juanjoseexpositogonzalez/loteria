@@ -107,6 +107,19 @@ class Tokens extends Component {
         `
       });
 
+      Swal.fire({
+        icon: "info",
+        title: "Balance de tokens del Smart Contract:",
+        width: 800,
+        padding: '3em',
+        text: `${_balanceTokensSC} tokens`,
+        backdrop: `
+          rgba(15, 238, 168, 0.2);
+          left top
+          no-repeat
+        `
+      });
+
     } catch (err) {
       this.setState({ errorMessage: err });
     } finally {
