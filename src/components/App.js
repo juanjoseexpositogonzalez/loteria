@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import Tokens from './Tokens';
 import Footer from './Footer';
+import Loteria from './Loteria';
+import Ganador from './Ganador'
 
 class App extends Component {
     
@@ -13,6 +15,8 @@ class App extends Component {
                     <div>
                         <Routes>
                             <Route path="/" element={<Tokens />} />
+                            <Route path="/loteria" element={<Loteria />} />
+                            <Route path="/ganador" element={<Ganador />} />
                         </Routes>
                     </div>
                     <Footer />

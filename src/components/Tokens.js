@@ -1,9 +1,13 @@
 import React, { Component } from 'react';
-import smart_contract from '../abis/Migrations.json';
+import smart_contract from '../abis/loteria.json';
 import Web3 from 'web3';
-import logo from '../logo.png';
+import Swal from 'sweetalert2';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 import Navigation from './Navbar';
+// eslint-disable-next-line
 import MyCarousel from './Carousel';
 
 class Tokens extends Component {
@@ -36,7 +40,7 @@ class Tokens extends Component {
     const accounts = await web3.eth.getAccounts()
     this.setState({ account: accounts[0] })
     // Ganache -> 5777, Rinkeby -> 4, BSC -> 97
-    const networkId = await web3.eth.net.getId() 
+    const networkId = await web3.eth.net.getId()
     console.log('networkid:', networkId)
     const networkData = smart_contract.networks[networkId]
     console.log('NetworkData:', networkData)
@@ -47,7 +51,7 @@ class Tokens extends Component {
       const address = networkData.address
       console.log('address:', address)
       const contract = new web3.eth.Contract(abi, address)
-      this.setState({ contract })
+      this.setState({ contract: contract })
     } else {
       window.alert('¡El Smart Contract no se ha desplegado en la red!')
     }
@@ -57,9 +61,138 @@ class Tokens extends Component {
     super(props)
     this.state = {
       account: '0x0',
-      loading: true
+      contract: null,
+      loading: true,
+      errorMessage: "",
     }
   }
+
+  _balanceTokens = async () => {
+    try {
+      console.log("Balance de tokens en ejecución...");
+      const _balance = await this.state.contract.methods.balanceTokens(this.state.account).call()
+      Swal.fire({
+        icon: "info",
+        title: "Balance de tokens del usuario:",
+        width: 800,
+        padding: '3em',
+        text: `${_balance} tokens`,
+        backdrop: `
+          rgba(15, 238, 168, 0.2);
+          left top
+          no-repeat
+        `
+      });
+    } catch (err) {
+      this.setState({ errorMessage: err });
+    } finally {
+      this.setState({ loading: false })
+    }
+  }
+
+  _balanceTokensSC = async () => {
+    try {
+      console.log("Balance de tokens del SC en ejecución...");
+      const _balanceTokensSC = await this.state.contract.methods.balanceTokensSC().call();
+      Swal.fire({
+        icon: "info",
+        title: "Balance de tokens del Smart Contract:",
+        width: 800,
+        padding: '3em',
+        text: `${_balanceTokensSC} tokens`,
+        backdrop: `
+          rgba(15, 238, 168, 0.2);
+          left top
+          no-repeat
+        `
+      });
+
+    } catch (err) {
+      this.setState({ errorMessage: err });
+    } finally {
+      this.setState({ loading: false })
+    }
+  }
+
+  _balanceEthersSC = async () => {
+    try {
+      console.log("Balance de Ethers del Smart Contract en ejecución...");
+      const _balanceEthersSC = await this.state.contract.methods.balanceEthersSC().call();
+      Swal.fire({
+        icon: "info",
+        title: "Balance de ethers del Smart Contract:",
+        width: 800,
+        padding: '3em',
+        text: `${_balanceEthersSC} ethers`,
+        backdrop: `
+          rgba(15, 238, 168, 0.2);
+          left top
+          no-repeat
+        `
+      });
+
+    } catch (err) {
+      this.setState({ errorMessage: err });
+    } finally {
+      this.setState({ loading: false })
+    }
+  }
+
+  _compraTokens = async (_numTokens) => {
+    try {
+      console.log("Compra de tokens en ejecución...")
+      const web3 = window.web3
+      const ethers = web3.utils.toWei(_numTokens, 'ether');
+      await this.state.contract.methods.compraTokens(_numTokens).send(
+        {
+          from: this.state.account,
+          value: ethers
+        })
+      Swal.fire({
+        icon: "success",
+        title: "¡Compra de tokens realizada!",
+        width: 800,
+        padding: '3em',
+        text: `Has comprado ${_numTokens} token/s por un valor de ${ethers / 10 ** 18} ether/s`,
+        backdrop: `
+            rgba(15, 238, 168, 0.2);
+            left top
+            no-repeat
+          `
+      });
+
+    } catch (err) {
+      this.setState({ errorMessage: err });
+    } finally {
+      this.setState({ loading: false })
+    }
+  };
+
+  _devolverTokens = async (_numTokens) => {
+    try {
+      console.log("Devolución de tokens en ejecución...")
+      await this.state.contract.methods.devolverTokens(_numTokens).send({
+        from: this.state.account
+      });
+      Swal.fire({
+        icon: "warning",
+        title: "¡Devolución de tokens ERC-20!",
+        width: 800,
+        padding: '3em',
+        text: `Has devuelto ${_numTokens} token/s`,
+        backdrop: `
+            rgba(15, 238, 168, 0.2);
+            left top
+            no-repeat
+          `
+      });
+
+    } catch (err) {
+      this.setState({ errorMessage: err });
+    } finally {
+      this.setState({ loading: false })
+    }
+  };
 
   render() {
     return (
@@ -70,25 +203,97 @@ class Tokens extends Component {
           <div className="row">
             <main role="main" className="col-lg-12 d-flex text-center">
               <div className="content mr-auto ml-auto">
-                <a
-                  href="https://blockstellart.com/rutas-de-aprendizaje/blockchain/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <img src={logo} className="App-logo" alt="" width="100%" height="80%" />
-                </a>
-                <h1>DApp (Autor: <a href="https://www.linkedin.com/in/joanamengual7/">Joan Amengual</a>)</h1>
-                <p>
-                  Edita <code>src/components/App.js</code> y guarda para recargar.
-                </p>
-                <a
-                  className="App-link"
-                  href="https://blockstellart.com/rutas-de-aprendizaje/blockchain/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  ¡APRENDE BLOCKCHAIN <u><b>AHORA! </b></u>
-                </a>
+                <h1>Gestión de los Tokens ERC-20</h1>
+                &nbsp;
+                <Container>
+                  <Row>
+                    <Col>
+                      <h3>Tokens usuario</h3>
+                      <form onSubmit={(event) => {
+                        event.preventDefault();
+                        this._balanceTokens();
+                      }}>
+
+                        <input type="submit"
+                          className="bbtn btn-block btn-success btn-sm"
+                          value="BALANCE DE TOKENS" />
+
+                      </form>
+                    </Col>
+                    <Col>
+                      <h3>Tokens SC</h3>
+                      <form onSubmit={(event) => {
+                        event.preventDefault();
+                        this._balanceTokensSC();
+                      }}
+                      >
+
+                        <input type="submit"
+                          className="bbtn btn-block btn-info btn-sm"
+                          value="BALANCE DE TOKENS (SC)" />
+
+                      </form>
+
+
+                    </Col>
+
+                    <Col>
+                      <h3>Ethers SC</h3>
+                      <form onSubmit={(event) => {
+                        event.preventDefault();
+                        this._balanceEthersSC();
+                      }}
+                      >
+
+                        <input type="submit"
+                          className="bbtn btn-block btn-danger btn-sm"
+                          value="BALANCE DE ETHERS (SC)" />
+
+                      </form>
+
+                    </Col>
+                  </Row>
+                </Container>
+
+                &nbsp;
+
+                <h3>Compra de Tokens ERC-20</h3>
+
+                <form onSubmit={(event) => {
+                  event.preventDefault();
+                  const cantidad = this._numTokens.value;
+                  this._compraTokens(cantidad)
+                }}>
+
+                  <input type="number"
+                    className="form-control mb1"
+                    placeholder="Cantidad de tokens a comprar"
+                    ref={(input) => this._numTokens = input}
+                  />
+                  <input type="submit"
+                    className="bbtn btn-block btn-primary btn-sm"
+                    value="COMPRAR TOKENS" />
+                </form>
+
+                &nbsp;
+
+                <h3>Devolución de Tokens ERC-20</h3>
+
+                <form onSubmit={(event) => {
+                  event.preventDefault();
+                  const cantidad = this._numTokensDevolver.value;
+                  this._devolverTokens(cantidad);
+                }}>
+
+                  <input type="number"
+                    className="form-control mb1"
+                    placeholder="Cantidad de tokens a devolver"
+                    ref={(input) => this._numTokensDevolver = input}
+                  />
+                  <input type="submit"
+                    className="bbtn btn-block btn-warning btn-sm"
+                    value="DEVOLVER TOKENS" />
+                </form>
               </div>
             </main>
           </div>
