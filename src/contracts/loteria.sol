@@ -95,7 +95,7 @@ contract loteria is ERC20, Ownable {
         // El número de tokens debe ser mayor a cero
         require(_numTokens > 0, "Necesitas devolver un numero de tokens mayor a cero");
         // El usuario debe acreditar tener los tokens que quiere devolver
-        require(_numTokens <= balanceOf(msg.sender), "No tienes los tokens que deseas devolver");
+        require(_numTokens <= balanceTokens(msg.sender), "No tienes los tokens que deseas devolver");
 
         // El usuario transfiere los tokens al Smart Contract
         _transfer(msg.sender, address(this), _numTokens);
